@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<title>IBS Desk — Painel de Chamados</title>
+<style>
+  :root { --azul:#1f3a5f; --azul2:#4a7db5; --ok:#2e7d32; --ruim:#b71c1c; --fundo:#f4f6fa; }
+  * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+  body { margin:0; background:var(--fundo); color:#222; }
+  header { background:var(--azul); color:#fff; padding:14px 24px; display:flex; align-items:center; gap:14px; }
+  header h1 { font-size:18px; margin:0; } header .sub { font-size:12px; opacity:.8; }
+  main { max-width:1100px; margin:24px auto; padding:0 16px; }
+  .kpis { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:20px; }
+  .kpi { flex:1 1 160px; background:#fff; border:1px solid #dbe2ee; border-top:3px solid var(--azul2); border-radius:8px; padding:12px 14px; }
+  .kpi .n { font-size:22px; font-weight:700; color:var(--azul); }
+  .kpi .t { font-size:11px; color:#667; text-transform:uppercase; letter-spacing:.4px; }
+  .card { background:#fff; border:1px solid #dbe2ee; border-radius:8px; padding:16px; margin-bottom:20px; }
+  .card h2 { font-size:14px; margin:0 0 12px; color:var(--azul); }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { background:#eef2f7; text-align:left; padding:8px; border-bottom:2px solid var(--azul2); }
+  td { padding:8px; border-bottom:1px solid #e7ecf3; }
+  .pill { padding:2px 10px; border-radius:10px; font-size:11px; font-weight:600; color:#fff; }
+  .p-aberto{background:#c96f26}.p-atendendo{background:#4a7db5}.p-resolvido{background:var(--ok)}.p-fechado{background:#777}
+  .estourado{color:var(--ruim); font-weight:700}
+  form { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+  label { font-size:11px; color:#556; display:block; margin-bottom:3px; text-transform:uppercase; }
+  input, select, textarea { width:100%; padding:8px; border:1px solid #c6d0e0; border-radius:6px; font-size:13px; }
+  .full { grid-column:1/-1; }
+  button { background:var(--azul); color:#fff; border:0; padding:10px 18px; border-radius:6px; cursor:pointer; font-weight:600; }
+  button:hover { background:var(--azul2); }
+  footer { text-align:center; color:#889; font-size:11px; padding:20px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>IBS Desk</h1>
+  <div class="sub">IBS – ITIL BIOS Solutions · Painel de chamados do service desk</div>
+</header>
+<main>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="card">
+    <h2>Novo chamado</h2>
+    <form id="form">
+      <div><label>Título</label><input id="titulo" required placeholder="Ex.: Servidor fora do ar"/></div>
+      <div><label>Cliente</label><input id="cliente" required placeholder="Ex.: Contabilidade Almeida"/></div>
+      <div>
+        <label>Categoria</label>
+        <select id="categoria">
+          <option value="infraestrutura">Infraestrutura</option>
+          <option value="email">E-mail</option>
+          <option value="sistemas">Sistemas/ERP</option>
+          <option value="seguranca">Segurança</option>
+          <option value="impressao">Impressão</option>
+          <option value="solicitacao">Solicitação</option>
+        </select>
+      </div>
+      <div>
+        <label>Prioridade</label>
+        <select id="prioridade">
+          <option value="P1">P1 — crítico (4h)</option>
+          <option value="P2">P2 — alto (8h)</option>
+          <option value="P3">P3 — médio (24h)</option>
+          <option value="P4">P4 — baixo (48h)</option>
+        </select>
+      </div>
+      <div class="full"><label>Descrição</label><textarea id="descricao" rows="2" placeholder="Descreva o problema..."></textarea></div>
+      <div><button type="submit">Abrir chamado</button></div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Fila de chamados</h2>
+    <table>
+      <thead><tr><th>#</th><th>Título</th><th>Cliente</th><th>Prioridade</th><th>Status</th><th>Prazo (SLA)</th><th>Ação</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</main>
+<footer>IBS Desk v1.0 — Projeto Prático em Sistemas · UNINOVE 2026 · API: http://localhost:3000</footer>
+<script>
+const API = 'http://localhost:3000';
+const PRIOR = { P1:'#b71c1c', P2:'#c96f26', P3:'#4a7db5', P4:'#777' };
+
+async function carregarKPIs() {
+  const m = await (await fetch(API + '/metrics')).json();
+  document.getElementById('kpis').innerHTML = `
+    <div class="kpi"><div class="t">Chamados</div><div class="n">${m.total_chamados}</div></div>
+    <div class="kpi"><div class="t">Abertos</div><div class="n">${m.abertos}</div></div>
+    <div class="kpi"><div class="t">TMA (h)</div><div class="n">${m.tma_horas}</div></div>
+    <div class="kpi"><div class="t">SLA cumprido</div><div class="n">${m.sla_cumprido_pct}%</div></div>`;
+}
+
+async function carregarTickets() {
+  const lista = await (await fetch(API + '/tickets')).json();
+  document.getElementById('tbody').innerHTML = lista.map(t => `
+    <tr>
+      <td>${t.id}</td><td>${t.titulo}</td><td>${t.cliente}</td>
+      <td><span class="pill" style="background:${PRIOR[t.prioridade]}">${t.prioridade}</span></td>
+      <td><span class="pill p-${t.status}">${t.status}</span></td>
+      <td class="${t.sla_estourado ? 'estourado' : ''}">${t.sla_estourado ? 'ESTOURADO' : new Date(t.prazo).toLocaleString('pt-BR')}</td>
+      <td>${['aberto','atendendo'].includes(t.status) ? `<button onclick="resolver(${t.id})">Resolver</button>` : '—'}</td>
+    </tr>`).join('');
+}
+
+async function resolver(id) {
+  await fetch(`${API}/tickets/${id}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: 'resolvido', horas_tecnicas: 1 })
+  });
+  carregarTickets(); carregarKPIs();
+}
+
+document.getElementById('form').addEventListener('submit', async e => {
+  e.preventDefault();
+  await fetch(API + '/tickets', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      titulo: titulo.value, cliente: cliente.value, descricao: descricao.value,
+      categoria: categoria.value, prioridade: prioridade.value
+    })
+  });
+  e.target.reset();
+  carregarTickets(); carregarKPIs();
+});
+
+carregarKPIs(); carregarTickets();
+setInterval(carregarTickets, 15000);
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "ibs-api-chamados",
+  "version": "1.0.0",
+  "description": "API REST de chamados do IBS Desk (microsservico principal)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node seed.js",
+    "test": "node --test sla.test.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}

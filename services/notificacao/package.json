@@ -1,0 +1,13 @@
+{
+  "name": "ibs-notificacoes",
+  "version": "1.0.0",
+  "description": "Microsservico de notificacoes do IBS Desk (independente da API)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}

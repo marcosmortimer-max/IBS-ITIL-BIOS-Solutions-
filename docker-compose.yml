@@ -1,0 +1,20 @@
+version: "3.9"
+# IBS Desk — sobe os 2 microsservicos (API de chamados + Notificacoes)
+services:
+  api:
+    build: ./services/api
+    image: ibs-desk/api
+    ports: ["3000:3000"]
+    environment:
+      - NOTIFICACAO_URL=http://notificacao:3001/notify
+    volumes:
+      - api-data:/app/data
+  notificacao:
+    build: ./services/notificacao
+    image: ibs-desk/notificacao
+    ports: ["3001:3001"]
+    volumes:
+      - notif-data:/app/data
+volumes:
+  api-data:
+  notif-data:

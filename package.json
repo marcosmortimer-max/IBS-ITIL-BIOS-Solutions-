@@ -1,0 +1,15 @@
+{
+  "name": "ibs-desk",
+  "version": "1.0.0",
+  "description": "IBS Desk — sistema de gestao de chamados do Projeto Pratico em Sistemas (Grupo IBS - ITIL BIOS Solutions / UNINOVE)",
+  "private": true,
+  "scripts": {
+    "install:all": "cd services/api && npm install && cd ../notificacao && npm install",
+    "start:api": "node services/api/server.js",
+    "start:notificacao": "node services/notificacao/server.js",
+    "seed": "node services/api/seed.js",
+    "test": "node --test services/api/sla.test.js",
+    "start": "echo 'Use: npm run start:api e npm run start:notificacao em terminais separados'"
+  },
+  "license": "MIT"
+}
